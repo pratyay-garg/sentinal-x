@@ -1,5 +1,7 @@
 # SENTINAL X — Autonomous Cyber-Defense Platform
 
+[![CI](https://github.com/pratyay-garg/sentinal-x/actions/workflows/ci.yml/badge.svg)](https://github.com/pratyay-garg/sentinal-x/actions/workflows/ci.yml)
+
 An AI-assisted platform that runs the whole security lifecycle over one shared
 attacker-state graph, instead of as a bag of separate scanners:
 
