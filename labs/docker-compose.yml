@@ -1,0 +1,50 @@
+# Optional, self-contained practice targets — NOT part of the SENTINAL X product.
+#
+# These are intentionally vulnerable applications used only to exercise the
+# scanner during development/demos. They live in their own Compose project
+# (`sentinalx-labs`) with their own network, and the main stack has no reference
+# to them. Start them separately; point an authorised scan at them per README.md.
+#
+#   docker compose -f labs/docker-compose.yml up -d
+#   docker compose -f labs/docker-compose.yml down
+name: sentinalx-labs
+
+services:
+  juice-shop:
+    image: bkimminich/juice-shop@sha256:73c53fbf442e8337b3ea3d98c7e8550308854701ebdfce4cc39768f36b75430e
+    pull_policy: missing
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "/nodejs/bin/node", "-e", "require('http').get('http://127.0.0.1:3000/rest/admin/application-version',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 90s
+
+  dvwa:
+    image: vulnerables/web-dvwa@sha256:dae203fe11646a86937bf04db0079adef295f426da68a92b40e3b181f337daa7
+    pull_policy: missing
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/80' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  bwapp:
+    image: raesene/bwapp@sha256:2f41183ea9f9e8fb36678d7a2a0c8a9db9a59f4569cee02fe6664b419b2600ee
+    pull_policy: missing
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/80' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s

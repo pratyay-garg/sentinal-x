@@ -1,0 +1,37 @@
+[project]
+name = "sentinalx-backend"
+version = "0.1.0"
+description = "SENTINAL X Autonomous Cyber-Defense Platform — backend"
+# Upper bound is deliberate: several pinned deps (psycopg2-binary, etc.) only
+# ship prebuilt wheels up to CPython 3.13. Without the ceiling, uv on a machine
+# whose default Python is 3.14 tries to compile psycopg2 from source and fails
+# (missing libpq headers). The ceiling makes uv pick/download a 3.12/3.13
+# interpreter with wheels, so `uv sync` works on any machine. The Docker image
+# already uses 3.12; this only affects local (backend/.venv) usage.
+requires-python = ">=3.12,<3.14"
+# Pinned. Add a library in the slice that first needs it, then re-run `uv lock`.
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.34.0",
+    "sqlalchemy==2.0.36",
+    "alembic==1.14.0",
+    "psycopg2-binary==2.9.10",
+    "pydantic==2.10.4",
+    "pydantic-settings==2.7.0",
+    "redis==5.2.1",
+    "httpx==0.28.1",
+    "asyncpg==0.30.0",
+    "tenacity==9.0.0",
+    "networkx==3.6.1",
+    "pulp==3.3.2",
+    "cryptography==50.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==8.3.4",
+    "pytest-asyncio==0.25.2",
+    "ruff==0.9.1",
+    "mypy==1.14.1",
+    "matplotlib==3.11.2",
+]

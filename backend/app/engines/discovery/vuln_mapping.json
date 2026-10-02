@@ -1,0 +1,13 @@
+{
+  "version": "2026-09-13.v1",
+  "aliases": {
+    "default-login": "cred_reuse",
+    "default_creds": "cred_reuse",
+    "graphql-introspection": "info_leak",
+    "graphql_introspection_exposure": "info_leak",
+    "idor_bola": "idor",
+    "jwt-none-alg": "auth_bypass",
+    "missing-security-headers": "misconfig_open_service",
+    "security_misconfig_headers": "misconfig_open_service"
+  }
+}

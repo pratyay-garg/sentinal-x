@@ -1,0 +1,120 @@
+{
+  "_comment": "Hand-authored fixture. Deliberately contains: (1) an AND-join vulnerability, (2) a mutual-compromise cycle web-01 <-> cache-01, (3) a dominator gating backup-01, (4) two findings sharing one patch_group so the ILP beats the min-cut. Every assertion in tests/graph is pinned to this file.",
+
+  "assets": [
+    {"id": "edge-lb",   "zone": "dmz",  "criticality": 2, "hostnames": ["lb.target.local"], "ips": ["10.0.0.10"]},
+    {"id": "web-01",    "zone": "dmz",  "criticality": 2, "hostnames": ["www.target.local"], "ips": ["10.0.0.11"]},
+    {"id": "web-02",    "zone": "dmz",  "criticality": 2, "hostnames": ["shop.target.local"], "ips": ["10.0.0.12"]},
+    {"id": "api-01",    "zone": "app",  "criticality": 3, "hostnames": ["api.target.local"], "ips": ["10.0.1.20"]},
+    {"id": "cache-01",  "zone": "app",  "criticality": 2, "ips": ["10.0.1.21"]},
+    {"id": "admin-ws",  "zone": "corp", "criticality": 3, "ips": ["10.0.2.30"]},
+    {"id": "db-01",     "zone": "data", "criticality": 5, "is_crown_jewel": true, "ips": ["10.0.3.40"]},
+    {"id": "backup-01", "zone": "data", "criticality": 4, "is_crown_jewel": true, "ips": ["10.0.3.41"]}
+  ],
+
+  "entries": ["edge-lb"],
+
+  "routes": [
+    {"src": "edge-lb",  "dst": "web-01",   "provenance": "observed", "reason": "nmap 443/tcp open, LB upstream"},
+    {"src": "edge-lb",  "dst": "web-02",   "provenance": "observed", "reason": "nmap 443/tcp open, LB upstream"},
+    {"src": "web-01",   "dst": "api-01",   "provenance": "observed", "reason": "observed XHR to api.target.local"},
+    {"src": "web-02",   "dst": "api-01",   "provenance": "observed", "reason": "observed XHR to api.target.local"},
+    {"src": "web-01",   "dst": "cache-01", "provenance": "observed", "reason": "nmap 6379/tcp open from web-01"},
+    {"src": "cache-01", "dst": "web-01",   "provenance": "assumed",  "reason": "same subnet 10.0.1.0/24 - assumed"},
+    {"src": "api-01",   "dst": "db-01",    "provenance": "observed", "reason": "nmap 5432/tcp open from api-01"},
+    {"src": "api-01",   "dst": "backup-01","provenance": "observed", "reason": "nmap 22/tcp open from api-01"},
+    {"src": "admin-ws", "dst": "api-01",   "provenance": "assumed",  "reason": "corp -> app assumed"}
+  ],
+
+  "facts": [
+    {"kind": "sequential_object_ids", "ref": "api-01", "description": "order ids are sequential integers", "provenance": "evidence"},
+    {"kind": "shared_credential",     "ref": "global", "description": "api service account reused on backup-01", "provenance": "observed"},
+    {"kind": "user_interaction",      "ref": "web-02", "description": "reflected payload requires a victim click", "provenance": "cvss_vector"}
+  ],
+
+  "findings": [
+    {
+      "id": "F1", "asset_id": "web-01", "vuln_class": "rce",
+      "status": "validated", "confidence": 0.92,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "epss": 0.41, "epss_snapshot_date": "2026-09-01",
+      "patch_hours": 2.0, "patch_group": "nginx-CVE-2026-1111",
+      "evidence_id": "e-F1", "endpoint": "/upload"
+    },
+    {
+      "id": "F2", "asset_id": "web-02", "vuln_class": "rce",
+      "status": "validated", "confidence": 0.90,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "epss": 0.41, "epss_snapshot_date": "2026-09-01",
+      "patch_hours": 2.0, "patch_group": "nginx-CVE-2026-1111",
+      "evidence_id": "e-F2", "endpoint": "/upload"
+    },
+    {
+      "id": "F3", "asset_id": "api-01", "vuln_class": "ssrf",
+      "status": "validated", "confidence": 0.78,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:L/I:N/A:N",
+      "target_asset_id": "db-01",
+      "patch_hours": 3.0, "patch_group": "api-ssrf-allowlist",
+      "evidence_id": "e-F3", "endpoint": "/fetch", "param": "url"
+    },
+    {
+      "id": "F4", "asset_id": "api-01", "vuln_class": "sqli",
+      "status": "validated", "confidence": 0.95,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N",
+      "target_asset_id": "db-01",
+      "epss": 0.12, "epss_snapshot_date": "2026-09-01",
+      "patch_hours": 4.0, "patch_group": "api-sqli-parameterise",
+      "evidence_id": "e-F4", "endpoint": "/search", "param": "q",
+      "observed_grants": ["data_read"]
+    },
+    {
+      "id": "F5", "asset_id": "api-01", "vuln_class": "idor",
+      "status": "validated", "confidence": 0.81,
+      "patch_hours": 3.0, "patch_group": "api-object-authorization",
+      "evidence_id": "e-F5", "endpoint": "/orders/{id}"
+    },
+    {
+      "id": "F6", "asset_id": "web-01", "vuln_class": "xss_stored",
+      "status": "validated", "confidence": 0.74,
+      "patch_hours": 2.0, "patch_group": "web-output-encoding",
+      "evidence_id": "e-F6", "endpoint": "/reviews"
+    },
+    {
+      "id": "F7", "asset_id": "backup-01", "vuln_class": "cred_reuse",
+      "status": "validated", "confidence": 0.66,
+      "patch_hours": 1.0, "patch_group": "credential_rotation",
+      "evidence_id": "e-F7"
+    },
+    {
+      "id": "F8", "asset_id": "cache-01", "vuln_class": "misconfig_open_service",
+      "status": "unvalidated", "confidence": 0.25,
+      "patch_hours": 0.5, "patch_group": "cache-network-policy",
+      "endpoint": "redis:6379"
+    },
+    {
+      "id": "F9", "asset_id": "api-01", "vuln_class": "broken_access_control",
+      "status": "inconclusive", "confidence": 0.40,
+      "patch_hours": 2.0, "patch_group": "api-admin-authorization",
+      "evidence_id": "e-F9", "endpoint": "/admin"
+    },
+    {
+      "id": "F10", "asset_id": "web-02", "vuln_class": "info_leak",
+      "status": "validated", "confidence": 0.70,
+      "patch_hours": 0.5, "patch_group": "web-error-redaction",
+      "evidence_id": "e-F10", "endpoint": "/.git/config"
+    },
+    {
+      "id": "F11", "asset_id": "backup-01", "vuln_class": "auth_bypass",
+      "status": "validated", "confidence": 0.88,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+      "patch_hours": 1.5, "patch_group": "backup-auth",
+      "evidence_id": "e-F11", "endpoint": "/rsync"
+    },
+    {
+      "id": "F12", "asset_id": "web-02", "vuln_class": "xss_reflected",
+      "status": "false_positive", "confidence": 0.10,
+      "patch_hours": 1.0, "patch_group": "web-output-encoding",
+      "evidence_id": "e-F12", "endpoint": "/q"
+    }
+  ]
+}

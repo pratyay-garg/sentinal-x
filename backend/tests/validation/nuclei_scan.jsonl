@@ -1,0 +1,13 @@
+# Cached Nuclei output for the demo -- pre-run once, replayed so the stage a
+# judge watches is our adjudication, not a live crawl. Deliberately mixes real
+# vulns, hallucinations, and one unmappable template.
+{"template-id":"sqli-error-based","info":{"name":"SQL Injection (error based)","severity":"critical","tags":["sqli","injection"],"classification":{"cvss-metrics":"CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N","cve-id":["CVE-2026-4242"]}},"type":"http","matched-at":"https://api.target.local/search?q=book"}
+{"template-id":"generic-sqli-500","info":{"name":"Possible SQLi via 500 response","severity":"high","tags":["sqli"],"classification":{"cvss-metrics":"CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N"}},"type":"http","matched-at":"https://web.target.local/q?s=x"}
+{"template-id":"reflected-xss","info":{"name":"Reflected XSS","severity":"medium","tags":["xss"]},"type":"http","matched-at":"https://web.target.local/echo?msg=hi"}
+{"template-id":"dom-xss-sink","info":{"name":"Reflected value in response","severity":"medium","tags":["xss"]},"type":"http","matched-at":"https://web.target.local/view?c=1"}
+{"template-id":"ssrf-oob","info":{"name":"Server Side Request Forgery","severity":"high","tags":["ssrf"]},"type":"http","matched-at":"https://api.target.local/fetch?url=x"}
+{"template-id":"jinja-ssti","info":{"name":"Template Injection","severity":"high","tags":["ssti","injection"]},"type":"http","matched-at":"https://web.target.local/hello?name=guest"}
+{"template-id":"git-config-exposure","info":{"name":".git/config disclosure","severity":"medium","tags":["exposure","config"]},"type":"http","matched-at":"https://web.target.local/.git/config"}
+{"template-id":"open-redirect-generic","info":{"name":"Open Redirect","severity":"low","tags":["redirect"]},"type":"http","matched-at":"https://web.target.local/out?next=x"}
+{"template-id":"CVE-2021-44228","info":{"name":"Apache Log4j RCE","severity":"critical","tags":["rce","log4j","cve"],"classification":{"cvss-metrics":"CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H","cve-id":["CVE-2021-44228"]}},"type":"http","matched-at":"https://api.target.local/login"}
+{"template-id":"tech-detect-nginx","info":{"name":"Nginx version detected","severity":"info","tags":["tech","detect"]},"type":"http","matched-at":"https://web.target.local/"}

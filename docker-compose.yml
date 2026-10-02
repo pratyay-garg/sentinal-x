@@ -1,0 +1,6 @@
+# Canonical launcher for the integrated Slice 4–6 runtime. The project name
+# makes root and backend commands address the same containers and DB volume.
+name: sentinalx
+
+include:
+  - path: backend/docker-compose.yml
